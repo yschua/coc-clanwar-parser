@@ -63,27 +63,31 @@ def parseMember(file):
     values.append(readInt32(file))  # Defense weight
     values.append(readInt32(file))
     values.append(readInt32(file))  # TH level ID
+
     values.append(readByte(file))
     values.append(readInt32(file))
     values.append(readInt32(file))
-    values.append(readByte(file))
     values.append(readInt32(file))
-    values.append(readByte(file))
-    values.append(readInt32(file)) 
-    values.append(readInt32(file)) 
-    values.append(readInt32(file))
-    if numDefenses:
-        values.append(readInt32(file)) 
+
+    battleDay = readByte(file)
+    values.append(battleDay)
+    
+    if battleDay:
         values.append(readInt32(file))
-    else:
-        values.append(0) 
-        values.append(0)
+        values.append(readInt32(file))
+
+        values.append(readByte(file))
+        values.append(readInt32(file) if numDefenses else 0)
+        values.append(readInt32(file) if numDefenses else 0) # Best attack replay ID
+
+    values.append(readInt32(file))
+
     values.append(readInt32(file))  # CC level ID
     values.append(readInt32(file))  # CC capacity
     values.append('"' + readString(file) + '"') # CC request message
-    values.append(readInt32(file))  # CC capacity
+    values.append(readInt32(file))  # CC number of troops
 
-    # Unknown variable length data
+    # CC Troops
     sizeI = readInt32(file)
     values.append(sizeI)
     for i in range(0, sizeI):
@@ -149,22 +153,27 @@ def parsePadding(file):
     values.append(readByte(file))
     printList(values)
 
-
+# Labels do not display properly for war packet during preparation day
 clanLabel = "ClanID,ClanName,,ClanLevel,WarSize"
-memberLabel = "ClanID,MemberID,MemberID,Name,StarsGiven,Damage,,AttacksUsed,"
+memberLabel = ("ClanID,MemberID,MemberID,Name,StarsGiven,Damage,,AttacksUsed,"
 "TotalDefenses,GoldGained,ElixirGained,DEGained,GoldAvailable,ElixirAvailable,"
-"DEAvailable,OffenseWeight,DefenseWeight,,THID,,,,,,,,,,,,"
-"CCID,CCSize,CCRequestMessage,CCSize"
-attackLabel = ",,ReplayID,TimeLeft,AttackerClanID,AttackerID,DefenderClanID,"
-"DefenderID,AttackerName,DefenderName,StarsWon,StarsEarned,Damage"
+"DEAvailable,OffenseWeight,DefenseWeight,,THID,,,,,,,,,,BestAttackReplayID,,"
+"CCID,CCSize,CCRequestMessage,CCFilled")
+attackLabel = (",,ReplayID,TimeLeft,AttackerClanID,AttackerID,DefenderClanID,"
+"DefenderID,AttackerName,DefenderName,StarsWon,StarsEarned,Damage")
 
 fileIn = open(sys.argv[1], 'rb')
 fileOut = open(sys.argv[1] + ".csv", 'w', encoding = 'utf8')
 
 print(readInt32(fileIn), end = ',', file = fileOut)
-print(readInt32(fileIn), file = fileOut)
+print(readInt32(fileIn), file = fileOut) # Preparation day time left
 
 for i in range(0, 2):
     parseClan(fileIn)
     parsePadding(fileIn)
 parseAttacks(fileIn)
+
+if not fileIn.read(1):
+    print("Done parsing")
+else:
+    print("Parsing incomplete")
