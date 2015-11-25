@@ -319,11 +319,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("filepath", help = "decrypted LastClanWarData packet file path")
 parser.add_argument("-r", "--raw", action = "store_false", help = "create raw decoded output")
 parser.add_argument("-p", "--pretty", action = "store_true", help = "pretty print json")
+parser.add_argument("-o", "--output", action = 'store', help = "specify output path, ending with /")
 args = parser.parse_args()
 
 fileIn = open(args.filepath, 'rb')
 fileOut =  open(args.filepath + "-raw.csv", 'w', encoding = 'utf8')
-jsonFileOut = open(args.filepath + ".json", 'w', encoding = 'utf8')
 
 print(readInt32(fileIn), end = ',', file = fileOut) # Clan war stage
 print(readInt32(fileIn), file = fileOut)            # Time left
@@ -353,6 +353,12 @@ if args.pretty:
     jsonOutput = json.dumps(warData, indent = 2, ensure_ascii = False)
 else:
     jsonOutput = json.dumps(warData, ensure_ascii = False)
+
+if args.output:
+    jsonFileOut = open(args.output + m.group(0) + ".json", 'w', encoding = 'utf8')
+else:
+    jsonFileOut = open(m.group(0) + ".json", 'w', encoding = 'utf8')
+
 print(jsonOutput, file = jsonFileOut)
 
 if not fileIn.read(1):
