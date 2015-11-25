@@ -231,7 +231,9 @@ def parseAttackEntry(file):
     values.append(readInt32(file))  # Damage
     event['damage'] = values[-1]
 
-    values.append(readInt32(file))
+    values.append(readInt32(file)) # Time taken
+    event['timeTaken'] = values[-1] + 1
+
     values.append(readInt32(file))
     values.append(readInt32(file))
     values.append(readInt32(file))
@@ -276,6 +278,37 @@ def parsePadding(file):
         values.append(readInt32(file))
     values.append(readByte(file))
     printList(values)
+
+def createStats(home, enemy):
+    stats = {}
+    warSize = home['size']
+
+    stats['attacksUsed'] = 0
+    for player in home['roster']:
+        stats['attacksUsed'] += player['attacksUsed']
+    stats['attacksRemaining'] = warSize * 2 - stats['attacksUsed']
+
+    stats['3Star'] = 0
+    stats['2Star'] = 0
+    stats['1Star'] = 0
+    destruction = 0
+    for player in enemy['roster']:
+        destruction += player['damageTaken']
+        if player['starsGiven'] == 3:
+            stats['3Star'] += 1
+        elif player['starsGiven'] == 2:
+            stats['2Star'] += 1
+        elif player['starsGiven'] == 1:
+            stats['1Star'] += 1
+    
+    stats['totalDestruction'] = float(destruction) / warSize
+
+    return stats
+
+def createSummary(homeClan, enemyClan, events):
+    home = createStats(homeClan, enemyClan)
+    enemy = createStats(enemyClan, homeClan)
+    return {'home': home, 'enemy': enemy}
     
 # Labels do not display properly for war packet during preparation day
 clanLabel = "ClanID,ClanName,,ClanLevel,WarSize"
@@ -304,6 +337,8 @@ homeClanId = homeClan['id']
 enemyClanId = enemyClan['id']
 
 warEvents = parseAttacks(fileIn, homeClan, enemyClan)
+warSummary = createSummary(homeClan, enemyClan, warEvents)
+
 if args.raw:
     fileOut.close()
     os.remove(args.filepath + "-raw.csv") # Should be a better way to do this
@@ -313,11 +348,12 @@ swapAttackOrder(homeClan)
 swapAttackOrder(enemyClan)
 
 m = re.search("[^\\\/]+$", args.filepath)
-warData = {'id': int(m.group(0)), 'home': homeClan, 'enemy': enemyClan, 'events': warEvents}
+warData = {'id': int(m.group(0)), 'summary': warSummary, 'home': homeClan, 'enemy': enemyClan, 'events': warEvents}
 if args.pretty:
-    print(json.dumps(warData, indent = 2), file = jsonFileOut)
+    jsonOutput = json.dumps(warData, indent = 2, ensure_ascii = False)
 else:
-    print(json.dumps(warData), file = jsonFileOut)
+    jsonOutput = json.dumps(warData, ensure_ascii = False)
+print(jsonOutput, file = jsonFileOut)
 
 if not fileIn.read(1):
     print("done parsing")
