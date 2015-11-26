@@ -94,6 +94,7 @@ def parseMember(file):
     player = {} # formatted output
 
     player['attacksUsed'] = 0
+    player['attacksWon'] = 0
     player['attack1'] = {'starsWon': 0, 'starsEarned': 0, 'damage': 0, 'target': "", 'targetPosition': 0}
     player['attack2'] = {'starsWon': 0, 'starsEarned': 0, 'damage': 0, 'target': "", 'targetPosition': 0}
 
@@ -266,6 +267,9 @@ def parseAttackEntry(file):
     else:
         player['attack1'] = attackResult
 
+    if event['starsWon'] > 0:
+        player['attacksWon'] += 1
+
     return event
 
 def parsePadding(file):
@@ -283,9 +287,12 @@ def createStats(home, enemy):
     warSize = home['size']
 
     stats['attacksUsed'] = 0
+    stats['attacksWon'] = 0
     for player in home['roster']:
         stats['attacksUsed'] += player['attacksUsed']
+        stats['attacksWon'] += player['attacksWon']
     stats['attacksRemaining'] = warSize * 2 - stats['attacksUsed']
+    stats['attacksLost'] = stats['attacksUsed'] - stats['attacksWon']
 
     stats['3Star'] = 0
     stats['2Star'] = 0
