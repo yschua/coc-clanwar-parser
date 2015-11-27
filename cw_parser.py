@@ -316,16 +316,16 @@ def createSummary(homeClan, enemyClan, events):
     home = createStats(homeClan, enemyClan)
     enemy = createStats(enemyClan, homeClan)
     if home['totalStars'] > enemy['totalStars']:
-        result = "win"
+        result = "Victory"
     elif home['totalStars'] < enemy['totalStars']:
-        result = "loss"
+        result = "Loss"
     else:
         if home['totalDestruction'] > enemy['totalDestruction']:
-            result = "win"
+            result = "Victory"
         elif home['totalDestruction'] < enemy['totalDestruction']:
-            result = "loss"
+            result = "Loss"
         else:
-            result = "draw"
+            result = "Draw"
     return {'home': home, 'enemy': enemy, 'result': result}
     
 # Labels do not display properly for war packet during preparation day
