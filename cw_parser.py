@@ -60,6 +60,9 @@ def parseClan(file):
     values = []
     clan = {}
 
+    clan['totalOffenseWeight'] = 0
+    clan['totalDefenseWeight'] = 0
+
     values.append(readInt64(file))  # Clan ID
     clan['id'] = values[-1]
 
@@ -85,6 +88,8 @@ def parseClan(file):
         player = parseMember(file)
         player['position'] = i + 1
         roster.append(player)
+        clan['totalOffenseWeight'] += player['offenseWeight']
+        clan['totalDefenseWeight'] += player['defenseWeight']
 
     clan['roster'] = roster
     return clan
